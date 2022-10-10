@@ -1,12 +1,32 @@
-import React from "react";
-import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
+import {
+  DragDropContext,
+  Draggable,
+  Droppable,
+  DropResult,
+} from "react-beautiful-dnd";
+import { useRecoilState } from "recoil";
 import styled, { ThemeProvider } from "styled-components";
 import GlobalStyle from "./components/shared/GlobalStyle";
+import todoState from "./recoil/todo";
 import { darkTheme } from "./theme";
 
 function App() {
-  const onDragEnd = () => {};
-  const TO_DO = ["A", "B", "C", "D", "E", "F", "G"];
+  const [todoList, setTodoList] = useRecoilState(todoState);
+  const onDragEnd = ({ destination, source }: DropResult) => {
+    if (!destination) return;
+
+    setTodoList((prevTodoList) => {
+      const copyTodoList = [...prevTodoList];
+
+      copyTodoList.splice(
+        destination.index,
+        0,
+        copyTodoList.splice(source.index, 1)[0]
+      );
+
+      return copyTodoList;
+    });
+  };
 
   return (
     <ThemeProvider theme={darkTheme}>
@@ -20,7 +40,7 @@ function App() {
                   ref={boardDroppableProvided.innerRef}
                   {...boardDroppableProvided.droppableProps}
                 >
-                  {TO_DO.map((element, index) => (
+                  {todoList.map((element, index) => (
                     <Draggable
                       key={element}
                       draggableId={element}
