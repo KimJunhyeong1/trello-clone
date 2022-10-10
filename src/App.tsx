@@ -1,11 +1,7 @@
-import {
-  DragDropContext,
-  Draggable,
-  Droppable,
-  DropResult,
-} from "react-beautiful-dnd";
+import { DragDropContext, Droppable, DropResult } from "react-beautiful-dnd";
 import { useRecoilState } from "recoil";
 import styled, { ThemeProvider } from "styled-components";
+import DraggableCard from "./components/draggableCard/draggableCard.component";
 import GlobalStyle from "./components/shared/GlobalStyle";
 import todoState from "./recoil/todo";
 import { darkTheme } from "./theme";
@@ -41,21 +37,7 @@ function App() {
                   {...boardDroppableProvided.droppableProps}
                 >
                   {todoList.map((element, index) => (
-                    <Draggable
-                      key={element}
-                      draggableId={element}
-                      index={index}
-                    >
-                      {(cardDraggableProvided) => (
-                        <Card
-                          ref={cardDraggableProvided.innerRef}
-                          {...cardDraggableProvided.dragHandleProps}
-                          {...cardDraggableProvided.draggableProps}
-                        >
-                          {element}
-                        </Card>
-                      )}
-                    </Draggable>
+                    <DraggableCard key={element} toDo={element} index={index} />
                   ))}
                   {boardDroppableProvided.placeholder}
                 </Board>
@@ -90,13 +72,6 @@ const Board = styled.div`
   background-color: ${(props) => props.theme.boardColor};
   border-radius: 5px;
   min-height: 200px;
-`;
-
-const Card = styled.div`
-  border-radius: 5px;
-  margin-bottom: 5px;
-  padding: 10px 10px;
-  background-color: ${(props) => props.theme.cardColor};
 `;
 
 export default App;
