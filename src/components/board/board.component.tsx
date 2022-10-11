@@ -91,15 +91,18 @@ const Area = styled.div<IAreaProps>`
 
 const Title = styled.h2`
   text-align: center;
-  font-weight: 600;
-  margin-bottom: 10px;
-  font-size: 18px;
+  font-weight: 800;
+  margin-bottom: 20px;
+  font-size: 20px;
 `;
 
 const Form = styled.form`
   width: 100%;
+
   input {
     width: 100%;
+    height: 40px;
+    border: none;
   }
 `;
 
