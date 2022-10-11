@@ -1,5 +1,6 @@
 import { Droppable } from "react-beautiful-dnd";
-import { useRecoilValue } from "recoil";
+import { useForm } from "react-hook-form";
+import { useRecoilState } from "recoil";
 import styled from "styled-components";
 import todoState from "../../recoil/todo";
 import DraggableCardComponent from "../draggableCard/draggableCard.component";
@@ -8,12 +9,33 @@ interface IBoardProps {
   boardId: string;
 }
 
+interface IForm {
+  toDo: string;
+}
+
 const Board = ({ boardId }: IBoardProps) => {
-  const boardList = useRecoilValue(todoState)[boardId];
+  const { register, setValue, handleSubmit } = useForm<IForm>();
+  const [toDo, setToDo] = useRecoilState(todoState);
+  const boardList = toDo[boardId];
+  const onValid = ({ toDo }: IForm) => {
+    const newTodo = { id: Date.now(), text: toDo };
+
+    setToDo((prevBoards) => {
+      return { ...prevBoards, [boardId]: [...prevBoards[boardId], newTodo] };
+    });
+    setValue("toDo", "");
+  };
 
   return (
     <Wrapper>
       <Title>{boardId}</Title>
+      <Form onSubmit={handleSubmit(onValid)}>
+        <input
+          {...register("toDo", { required: true })}
+          type="text"
+          placeholder={`Add task on ${boardId}`}
+        />
+      </Form>
       <Droppable droppableId={boardId}>
         {(boardDroppableProvided, snapshot) => (
           <Area
@@ -22,10 +44,11 @@ const Board = ({ boardId }: IBoardProps) => {
             ref={boardDroppableProvided.innerRef}
             {...boardDroppableProvided.droppableProps}
           >
-            {boardList.map((element, index) => (
+            {boardList.map((todo, index) => (
               <DraggableCardComponent
-                key={element}
-                toDo={element}
+                key={todo.id}
+                toDoId={todo.id}
+                toDoText={todo.text}
                 index={index}
               />
             ))}
@@ -40,11 +63,12 @@ const Board = ({ boardId }: IBoardProps) => {
 const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
-  width: 300px;
-  padding-top: 10px;
+  width: 400px;
+  padding: 20px;
+  padding-top: 30px;
   background-color: ${(props) => props.theme.boardColor};
   border-radius: 5px;
-  min-height: 300px;
+  min-height: 400px;
   overflow: hidden;
 `;
 
@@ -70,6 +94,13 @@ const Title = styled.h2`
   font-weight: 600;
   margin-bottom: 10px;
   font-size: 18px;
+`;
+
+const Form = styled.form`
+  width: 100%;
+  input {
+    width: 100%;
+  }
 `;
 
 export default Board;
