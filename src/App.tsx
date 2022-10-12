@@ -1,4 +1,4 @@
-import { DragDropContext, DropResult } from "react-beautiful-dnd";
+import { DragDropContext, Droppable, DropResult } from "react-beautiful-dnd";
 import { useRecoilState } from "recoil";
 import styled, { ThemeProvider } from "styled-components";
 import Board from "./components/board/board.component";
@@ -14,16 +14,36 @@ function App() {
     if (!destination) return;
 
     if (destination.droppableId === source.droppableId) {
-      setToDoList((allBoards) => {
-        const boardCopy = [...allBoards[source.droppableId]];
-        boardCopy.splice(
-          destination.index,
-          0,
-          boardCopy.splice(source.index, 1)[0]
-        );
+      switch (destination.droppableId) {
+        case "boards":
+          setToDoList((allBoards) => {
+            const boardsArr = Object.entries(allBoards);
+            boardsArr.splice(
+              destination.index,
+              0,
+              boardsArr.splice(source.index, 1)[0]
+            );
 
-        return { ...allBoards, [source.droppableId]: boardCopy };
-      });
+            return Object.fromEntries(boardsArr);
+          });
+          break;
+        case "toDo":
+        case "doing":
+        case "done":
+          setToDoList((allBoards) => {
+            const boardCopy = [...allBoards[source.droppableId]];
+            boardCopy.splice(
+              destination.index,
+              0,
+              boardCopy.splice(source.index, 1)[0]
+            );
+
+            return { ...allBoards, [source.droppableId]: boardCopy };
+          });
+          break;
+        default:
+          break;
+      }
     }
 
     if (destination.droppableId !== source.droppableId) {
@@ -51,11 +71,19 @@ function App() {
       <GlobalStyle />
       <DragDropContext onDragEnd={onDragEnd}>
         <Wrapper>
-          <Boards>
-            {Object.keys(toDoList).map((element) => (
-              <Board key={element} boardId={element} />
-            ))}
-          </Boards>
+          <Droppable droppableId="boards" direction="horizontal" type="BOARD">
+            {(boardsProvided) => (
+              <Boards
+                ref={boardsProvided.innerRef}
+                {...boardsProvided.droppableProps}
+              >
+                {Object.keys(toDoList).map((element, index) => (
+                  <Board key={element} boardId={element} index={index} />
+                ))}
+                {boardsProvided.placeholder}
+              </Boards>
+            )}
+          </Droppable>
         </Wrapper>
       </DragDropContext>
     </ThemeProvider>
