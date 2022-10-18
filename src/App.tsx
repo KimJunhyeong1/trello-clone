@@ -1,15 +1,21 @@
 import { DragDropContext, Droppable, DropResult } from "react-beautiful-dnd";
-import { useRecoilState } from "recoil";
+import { useRecoilState, useSetRecoilState } from "recoil";
 import styled, { ThemeProvider } from "styled-components";
-import Board from "./components/board/board.component";
 
+import Board from "./components/board/board.component";
 import GlobalStyle from "./components/shared/GlobalStyle";
 import todoState from "./recoil/todo";
 import { darkTheme } from "./theme";
+import trashCanState from "./recoil/trashCan";
+import TrashCan from "./components/trashCan/trashCan.component";
 
 function App() {
   const [toDoList, setToDoList] = useRecoilState(todoState);
+  const setTrashCan = useSetRecoilState(trashCanState);
+
   const onDragEnd = (info: DropResult) => {
+    setTrashCan({ isVisible: false });
+
     const { destination, source } = info;
     if (!destination) return;
 
@@ -44,6 +50,23 @@ function App() {
         default:
           break;
       }
+
+      return;
+    }
+
+    if (destination.droppableId === "trash") {
+      setToDoList((allBoards) => {
+        const boardCopy = [...allBoards[source.droppableId]];
+
+        boardCopy.splice(source.index, 1);
+
+        return {
+          ...allBoards,
+          [source.droppableId]: boardCopy,
+        };
+      });
+
+      return;
     }
 
     if (destination.droppableId !== source.droppableId) {
@@ -69,7 +92,12 @@ function App() {
   return (
     <ThemeProvider theme={darkTheme}>
       <GlobalStyle />
-      <DragDropContext onDragEnd={onDragEnd}>
+      <DragDropContext
+        onDragEnd={onDragEnd}
+        onBeforeDragStart={(info) => {
+          if (info.type === "CARD") setTrashCan({ isVisible: true });
+        }}
+      >
         <Wrapper>
           <Droppable droppableId="boards" direction="horizontal" type="BOARD">
             {(boardsProvided) => (
@@ -84,6 +112,7 @@ function App() {
               </Boards>
             )}
           </Droppable>
+          <TrashCan />
         </Wrapper>
       </DragDropContext>
     </ThemeProvider>
@@ -93,7 +122,7 @@ function App() {
 const Wrapper = styled.div`
   display: flex;
   width: 100vw;
-
+  position: relative;
   margin: 0 auto;
   justify-content: center;
   align-items: center;
